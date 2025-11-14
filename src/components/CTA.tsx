@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CTA = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 bg-gradient-hero relative overflow-hidden">
       {/* Decorative Elements */}
@@ -21,11 +24,20 @@ const CTA = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 shadow-glow group">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 shadow-glow group"
+              onClick={() => navigate('/login')}
+            >
               Get Started Now
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-secondary text-lg px-8">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-border text-foreground hover:bg-secondary text-lg px-8"
+              onClick={() => window.location.href = 'mailto:support@brototype.com'}
+            >
               Contact Support
             </Button>
           </div>

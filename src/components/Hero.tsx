@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Zap } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroBackground from "@/assets/hero-background.png";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -37,11 +40,22 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 shadow-glow group">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 shadow-glow group"
+              onClick={() => navigate('/login')}
+            >
               Submit a Complaint
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-secondary text-lg px-8">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-border text-foreground hover:bg-secondary text-lg px-8"
+              onClick={() => {
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Learn More
             </Button>
           </div>

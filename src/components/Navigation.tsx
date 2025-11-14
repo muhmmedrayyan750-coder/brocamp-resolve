@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
 const Navigation = () => {
@@ -17,11 +16,11 @@ const Navigation = () => {
           <Button variant="ghost" className="text-foreground hover:text-primary">
             How it Works
           </Button>
-          <Button variant="outline" className="border-primary/50 text-foreground hover:bg-primary/10" asChild>
-            <Link to="/login">Login</Link>
+          <Button variant="outline" className="border-primary/50 text-foreground hover:bg-primary/10">
+            Login
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" asChild>
-            <Link to="/login">Get Started</Link>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+            Get Started
           </Button>
         </div>
       </div>

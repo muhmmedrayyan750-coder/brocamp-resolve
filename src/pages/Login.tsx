@@ -10,69 +10,71 @@ import { toast } from 'sonner';
 import logo from '@/assets/logo.png';
 
 const Login = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginType, setLoginType] = useState<'student' | 'admin'>('student');
   const navigate = useNavigate();
 
-  const sendOTP = async () => {
+  const handleLogin = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phoneNumber,
-        options: {
-          channel: 'sms',
-        },
+      
+      // Try to sign in first
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (error) throw error;
-
-      setOtpSent(true);
-      toast.success('OTP sent to your phone number!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send OTP');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOTP = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: phoneNumber,
-        token: otp,
-        type: 'sms',
-      });
-
-      if (error) throw error;
+      // If user doesn't exist, sign them up
+      if (error?.message?.includes('Invalid login credentials')) {
+        const signUpResult = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
+        
+        if (signUpResult.error) throw signUpResult.error;
+        data = signUpResult.data;
+        
+        // Assign role for new user
+        if (data.user) {
+          await supabase
+            .from('user_roles')
+            .insert({ user_id: data.user.id, role: loginType });
+        }
+      } else if (error) {
+        throw error;
+      }
 
       // Check if user has role assigned
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user?.id)
-        .single();
-
-      if (!roleData) {
-        // Assign role based on login type
-        await supabase
+      if (data.user) {
+        const { data: roleData } = await supabase
           .from('user_roles')
-          .insert({ user_id: data.user?.id, role: loginType });
-      }
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
 
-      toast.success('Login successful!');
-      
-      // Navigate based on role
-      if (roleData?.role === 'admin' || loginType === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/student');
+        if (!roleData) {
+          // Assign role if missing
+          await supabase
+            .from('user_roles')
+            .insert({ user_id: data.user.id, role: loginType });
+        }
+
+        toast.success('Login successful!');
+        
+        // Navigate based on role
+        if (roleData?.role === 'admin' || loginType === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/student');
+        }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Invalid OTP');
+      toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -97,27 +99,23 @@ const Login = () => {
             
             <TabsContent value="student" className="space-y-4">
               <LoginForm
-                phoneNumber={phoneNumber}
-                setPhoneNumber={setPhoneNumber}
-                otp={otp}
-                setOtp={setOtp}
-                otpSent={otpSent}
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
                 loading={loading}
-                sendOTP={sendOTP}
-                verifyOTP={verifyOTP}
+                handleLogin={handleLogin}
               />
             </TabsContent>
             
             <TabsContent value="admin" className="space-y-4">
               <LoginForm
-                phoneNumber={phoneNumber}
-                setPhoneNumber={setPhoneNumber}
-                otp={otp}
-                setOtp={setOtp}
-                otpSent={otpSent}
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
                 loading={loading}
-                sendOTP={sendOTP}
-                verifyOTP={verifyOTP}
+                handleLogin={handleLogin}
               />
             </TabsContent>
           </Tabs>
@@ -127,49 +125,35 @@ const Login = () => {
   );
 };
 
-const LoginForm = ({ phoneNumber, setPhoneNumber, otp, setOtp, otpSent, loading, sendOTP, verifyOTP }: any) => (
+const LoginForm = ({ email, setEmail, password, setPassword, loading, handleLogin }: any) => (
   <>
     <div className="space-y-2">
-      <Label htmlFor="phone">Phone Number</Label>
+      <Label htmlFor="email">Email</Label>
       <Input
-        id="phone"
-        type="tel"
-        placeholder="+919876543210"
-        value={phoneNumber}
-        onChange={(e) => setPhoneNumber(e.target.value)}
-        disabled={otpSent || loading}
+        id="email"
+        type="email"
+        placeholder="brocampstudent@test.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={loading}
       />
     </div>
 
-    {otpSent && (
-      <div className="space-y-2">
-        <Label htmlFor="otp">Enter OTP</Label>
-        <Input
-          id="otp"
-          type="text"
-          placeholder="123456"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          disabled={loading}
-          maxLength={6}
-        />
-      </div>
-    )}
+    <div className="space-y-2">
+      <Label htmlFor="password">Password</Label>
+      <Input
+        id="password"
+        type="password"
+        placeholder="brocampstudent"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        disabled={loading}
+      />
+    </div>
 
-    {!otpSent ? (
-      <Button onClick={sendOTP} disabled={loading || !phoneNumber} className="w-full">
-        {loading ? 'Sending...' : 'Send OTP'}
-      </Button>
-    ) : (
-      <div className="space-y-2">
-        <Button onClick={verifyOTP} disabled={loading || !otp} className="w-full">
-          {loading ? 'Verifying...' : 'Verify OTP'}
-        </Button>
-        <Button onClick={sendOTP} variant="outline" className="w-full">
-          Resend OTP
-        </Button>
-      </div>
-    )}
+    <Button onClick={handleLogin} disabled={loading || !email || !password} className="w-full">
+      {loading ? 'Loading...' : 'Login / Sign Up'}
+    </Button>
   </>
 );
 

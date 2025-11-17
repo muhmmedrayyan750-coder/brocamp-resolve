@@ -10,11 +10,6 @@ import StudentDashboard from "./pages/StudentDashboard";
 import NewComplaint from "./pages/NewComplaint";
 import AdminDashboard from "./pages/AdminDashboard";
 import ComplaintChat from "./pages/ComplaintChat";
-import Login from "./pages/Login";
-import StudentDashboard from "./pages/StudentDashboard";
-import NewComplaint from "./pages/NewComplaint";
-import AdminDashboard from "./pages/AdminDashboard";
-import ComplaintChat from "./pages/ComplaintChat";
 
 const queryClient = new QueryClient();
 
